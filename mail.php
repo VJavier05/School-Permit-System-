@@ -7,6 +7,23 @@ require 'phpmailer/src/Exception.php';
 require 'phpmailer/src/PHPMailer.php';
 require 'phpmailer/src/SMTP.php';
 
+// Load environment variables
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        return;
+    }
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        list($name, $value) = explode('=', $line, 2);
+        $_ENV[trim($name)] = trim($value);
+    }
+}
+
+loadEnv(__DIR__ . '/.env');
+
 if (isset($_POST["send"])) {
     $mail = new PHPMailer(true);
 
@@ -19,16 +36,16 @@ if (isset($_POST["send"])) {
 
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'meeooowe7@gmail.com';
-        $mail->Password   = 'ribsazbhwiqujpdl'; // App Password
-        $mail->SMTPSecure = 'ssl';
-        $mail->Port       = 465;
+        $mail->Username   = $_ENV['SMTP_USERNAME'];
+        $mail->Password   = $_ENV['SMTP_PASSWORD'];
+        $mail->SMTPSecure = $_ENV['SMTP_SECURE'];
+        $mail->Port       = $_ENV['SMTP_PORT'];
 
         // Recipients
         $mail->setFrom($senderEmail, $senderName);
-        $mail->addAddress('meeooowe7@gmail.com'); // Your email
+        $mail->addAddress($_ENV['RECIPIENT_EMAIL']);
         $mail->addReplyTo($senderEmail, $senderName);
 
         // Content
